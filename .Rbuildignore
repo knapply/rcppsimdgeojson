@@ -1,4 +1,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-.clang-format
-.editorconfig
+^compile_flags.txt$
+^.clang-format$
+^.editorconfig$
+^.github$
+^.vscode$
+^check$
+^README.Rmd$

@@ -1,0 +1,54 @@
+---
+title: "`{rcppsimdgeojson}`"
+output:
+  github_document:
+    html_preview: true
+    toc: true
+    toc_depth: 2
+  html_document:
+    keep_md: yes
+always_allow_html: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- README.Rmd generates README.md. -->
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(
+  # collapse = TRUE,
+  fig.align = "center",
+  comment = "#>",
+  fig.path = "man/figures/",
+  message = FALSE,
+  warning = FALSE
+)
+
+options(width = 150)
+```
+
+
+<!-- badges: start -->
+[![GitHub last commit](https://img.shields.io/github/last-commit/knapply/rcppsimdgeojson.svg)](https://github.com/knapply/rcppsimdgeojson/commits/master)
+[![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![R build status](https://github.com/knapply/rcppsimdgeojson/workflows/R-CMD-check/badge.svg)](https://github.com/knapply/rcppsimdgeojson/actions?workflow=R-CMD-check)
+[![Codecov test coverage](https://codecov.io/gh/knapply/rcppsimdgeojson/branch/master/graph/badge.svg)](https://codecov.io/gh/knapply/rcppsimdgeojson?branch=master)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![HitCount](http://hits.dwyl.io/knapply/rcppsimdgeojson.svg)](http://hits.dwyl.io/knapply/rcppsimdgeojson)
+[![Depends-R](https://img.shields.io/badge/Depends-GNU_R >= 4.0-blue.svg)](https://www.r-project.org/)
+[![Depends-C++](https://img.shields.io/badge/Depends-C++17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[![Depends-GCC](https://img.shields.io/badge/Depends-GCC >= 7-red.svg)](https://gcc.gnu.org/)
+[![Depends-CLang](https://img.shields.io/badge/Depends-Clang >= 7-red.svg)](https://clang.llvm.org/)
+[![Depends-RTools](https://img.shields.io/badge/Depends-RTools >= 40-red.svg)](https://cran.r-project.org/bin/windows/Rtools/)
+
+<!-- badges: end -->
+
+## Installation
+
+
+```{r, eval=FALSE}
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+remotes::install_github("knapply/rcppsimdgeojson")
+```
+
+

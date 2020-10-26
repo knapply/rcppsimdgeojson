@@ -1,0 +1,128 @@
+on: push
+
+name: R-CMD-check
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }}, R-${{ matrix.r }} ${{ matrix.config.compiler }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: ubuntu-latest, compiler_name: g++, compiler: g++-7, run: g++-7 }
+          - { os: ubuntu-latest, compiler_name: g++, compiler: g++-8, run: g++-8 }
+          - { os: ubuntu-latest, compiler_name: g++, compiler: g++-9, run: g++-9 }
+          - { os: ubuntu-latest, compiler_name: g++, compiler: g++-10, run: g++-10 }
+          - { os: ubuntu-latest, compiler_name: clang, compiler: clang-7, run: clang++-7 }
+          - { os: ubuntu-latest, compiler_name: clang, compiler: clang-8, run: clang++-8 }
+          - { os: ubuntu-latest, compiler_name: clang, compiler: clang-9, run: clang++-9 }
+          - { os: ubuntu-latest, compiler_name: clang, compiler: clang-10, run: clang++-10 }
+          - { os: windows-latest }
+          # - { os: macOS-latest }
+        r:
+          - 'release'
+          - 'dev'
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@master
+        with:
+          r-version: ${{ matrix.config.r }}
+
+      - name: Clang
+        if: runner.os == 'Linux' && matrix.config.compiler_name == 'clang'
+        env:
+          RHUB_PLATFORM: debian-clang-devel
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install libomp5 -y
+          sudo apt-get install libomp-dev -y
+          Rscript -e "install.packages('remotes')"
+          Rscript -e "remotes::install_github('r-hub/sysreqs')"
+          sudo apt-get install ${{ matrix.config.compiler }} -y
+          mkdir -p ~/.R/
+          echo $'CXX1X=${{ matrix.config.run }}\nCXX17=${{ matrix.config.run }}\nCXX14=${{ matrix.config.run }}\nCXX11=${{ matrix.config.run }}' >> ~/.R/Makevars
+
+      - name: GCC
+        if: runner.os == 'Linux' && matrix.config.compiler_name == 'g++'
+        env:
+          RHUB_PLATFORM: linux-x86_64-ubuntu-gcc
+        run: |
+          sudo apt-get update -y
+          Rscript -e "install.packages('remotes')"
+          Rscript -e "remotes::install_github('r-hub/sysreqs')"
+          sudo apt-get install ${{ matrix.config.compiler }} -y
+          mkdir -p ~/.R/
+          echo $'CXX1X=${{ matrix.config.run }}\nCXX17=${{ matrix.config.run }}\nCXX14=${{ matrix.config.run }}\nCXX11=${{ matrix.config.run }}' >> ~/.R/Makevars
+
+      - name: Linux Spatial Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+          sudo apt update
+          sudo apt install \
+            libudunits2-dev \
+            libgdal-dev \
+            libgeos-dev \
+            libproj-dev
+
+      # - name: macOS Dependencies
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew install llvm@9
+      #     echo 'export PATH="/usr/local/opt/llvm@9/bin:$PATH"' >> /Users/runner/.bash_profile
+      #     export LDFLAGS="-L/usr/local/opt/llvm@9/lib"
+      #     export CPPFLAGS="-I/usr/local/opt/llvm@9/include"
+
+      - name: Prep R
+        shell: Rscript {0}
+        run: |
+          if (!requireNamespace('remotes', quietly = TRUE)) install.packages('remotes')
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+
+      - name: Prep macOS R
+        if: runner.os == 'macOS'
+        shell: Rscript {0}
+        run: |
+          install.packages("rgdal", type = "source")
+
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
+          restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-
+
+
+      - name: Session Info
+        shell: Rscript {0}
+        run: |
+          sessionInfo()
+
+      - name: R CMD check
+        shell: Rscript {0}
+        env:
+          _R_CHECK_CRAN_INCOMING_: false
+        run: |
+          install.packages("rcmdcheck")
+          rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
+
+      - name: Upload Results
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ matrix.config.os }}-r${{ matrix.r }}-results
+          path: check
+
+      # - name: Coverage
+      #   if: matrix.config.os == 'ubuntu-latest' && matrix.r == 'release' && matrix.config.compiler == 'g++-8'
+      #   shell: Rscript {0}
+      #   run: |
+      #     remotes::install_cran("covr")
+      #     covr::codecov()
