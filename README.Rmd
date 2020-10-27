@@ -43,6 +43,8 @@ options(width = 150)
 
 <!-- badges: end -->
 
+___WIP: This is still not useful...___
+
 ## Installation
 
 
@@ -50,5 +52,19 @@ options(width = 150)
 if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
 remotes::install_github("knapply/rcppsimdgeojson")
 ```
+
+
+### (Initial) Benchmarking
+
+```{r}
+microbenchmark::microbenchmark(
+  rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")),
+  geojsonsf = geojsonsf::geojson_sf("~/Downloads/bay_delta_89b.geojson"),
+  sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson")
+  ,
+  times = 5
+)
+```
+
 
 

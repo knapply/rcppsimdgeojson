@@ -25,9 +25,29 @@ v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/li
 
 <!-- badges: end -->
 
+***WIP: This is still not useful…***
+
 ## Installation
 
 ``` r
 if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
 remotes::install_github("knapply/rcppsimdgeojson")
 ```
+
+### (Initial) Benchmarking
+
+``` r
+microbenchmark::microbenchmark(
+  rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")),
+  geojsonsf = geojsonsf::geojson_sf("~/Downloads/bay_delta_89b.geojson"),
+  sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson")
+  ,
+  times = 5
+)
+```
+
+    #> Unit: milliseconds
+    #>             expr       min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson  881.9412 1008.401 1020.374 1053.282 1065.275 1092.973     5
+    #>        geojsonsf 1998.6408 2224.385 2287.515 2243.745 2429.686 2541.117     5
+    #>               sf 7072.5232 7415.354 7473.168 7419.669 7598.604 7859.688     5

@@ -2,7 +2,9 @@ g++-8
 -std=c++17
 -O3
 -I/usr/share/R/include/
+-I/home/brendan/R/x86_64-pc-linux-gnu-library/4.0/Rcpp/include/
 -I/home/brendan/R/x86_64-pc-linux-gnu-library/4.0/RcppSimdJson/include/
+-I/home/brendan/Documents/rcppsimdgeojson/inst/include
 -lomp
 -Wall
 -Wextra
@@ -17,3 +19,4 @@ g++-8
 -Wno-unused-macros
 -Wno-deprecated-dynamic-exception-spec
 -Wno-unused-function
+-Wno-unused-parameter
