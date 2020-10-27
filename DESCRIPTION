@@ -16,3 +16,4 @@ Depends: R (>= 4.0)
 SystemRequirements: C++17
 LinkingTo: Rcpp, RcppSimdJson
 Imports: Rcpp
+Remotes: github::eddelbuettel/rcppsimdjson@feature/always_int64
