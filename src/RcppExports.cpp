@@ -16,13 +16,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // parse_geojson
-SEXP parse_geojson(const Rcpp::CharacterVector& x);
-RcppExport SEXP _rcppsimdgeojson_parse_geojson(SEXP xSEXP) {
+SEXP parse_geojson(const Rcpp::CharacterVector& x, const bool on_demand);
+RcppExport SEXP _rcppsimdgeojson_parse_geojson(SEXP xSEXP, SEXP on_demandSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(parse_geojson(x));
+    Rcpp::traits::input_parameter< const bool >::type on_demand(on_demandSEXP);
+    rcpp_result_gen = Rcpp::wrap(parse_geojson(x, on_demand));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -40,7 +41,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcppsimdgeojson_hello", (DL_FUNC) &_rcppsimdgeojson_hello, 0},
-    {"_rcppsimdgeojson_parse_geojson", (DL_FUNC) &_rcppsimdgeojson_parse_geojson, 1},
+    {"_rcppsimdgeojson_parse_geojson", (DL_FUNC) &_rcppsimdgeojson_parse_geojson, 2},
     {"_rcppsimdgeojson_read_geojson", (DL_FUNC) &_rcppsimdgeojson_read_geojson, 1},
     {NULL, NULL, 0}
 };

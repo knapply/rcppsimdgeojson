@@ -1,12 +1,14 @@
 
+
+#include "simdjson.h"
 #include <rcppsimdgeojson.hpp>
 
 // [[Rcpp::export(.hello)]]
 bool hello() { return true; }
 
-
 // [[Rcpp::export(.parse_geojson)]]
-SEXP parse_geojson(const Rcpp::CharacterVector& x) {
+SEXP parse_geojson(const Rcpp::CharacterVector& x,
+                   const bool on_demand = false) {
   if (std::size(x) > 0) {
     simdjson::dom::parser parser;
 
@@ -18,7 +20,6 @@ SEXP parse_geojson(const Rcpp::CharacterVector& x) {
 
   return R_NilValue;
 }
-
 
 // [[Rcpp::export(.read_geojson)]]
 SEXP read_geojson(const Rcpp::CharacterVector& x) {

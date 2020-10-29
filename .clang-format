@@ -9,3 +9,5 @@ PointerAlignment: Left
 SortIncludes: false
 IndentWidth: 2
 IndentCaseLabels: true
+# AlwaysBreakAfterDefinitionReturnType: true
+# AlwaysAllParametersOfDeclarationOnNextLine: true

@@ -54,17 +54,30 @@ remotes::install_github("knapply/rcppsimdgeojson")
 ```
 
 
-### (Initial) Benchmarking
+
+
 
 ```{r}
-microbenchmark::microbenchmark(
-  rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")),
-  geojsonsf = geojsonsf::geojson_sf("~/Downloads/bay_delta_89b.geojson"),
-  sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson")
-  ,
-  times = 5
-)
+geojson_files <- list.files(system.file("geojsonexamples", package = "rcppsimdgeojson"),
+                            recursive = TRUE, pattern = "\\.geojson$", full.names = TRUE)
+geojson_files <- geojson_files[!grepl("largeMixedTest.geojson", geojson_files, fixed = TRUE)] # invalid
+
+lapply(geojson_files, rcppsimdgeojson:::.read_geojson)
 ```
+
+
+
+
+<!-- ```{r} -->
+<!-- microbenchmark::microbenchmark( -->
+<!--   rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")), -->
+<!--   geojsonsf = geojsonsf::geojson_sfc("~/Downloads/bay_delta_89b.geojson"), -->
+<!--   sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson") -->
+<!--   , -->
+<!--   times = 5 -->
+<!-- ) -->
+<!-- ``` -->
+
 
 
 
