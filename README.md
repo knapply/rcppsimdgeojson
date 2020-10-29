@@ -2,6 +2,8 @@
 ================
 
   - [Installation](#installation)
+  - [Conformance](#conformance)
+  - [Benchmarking](#benchmarking)
 
 <!-- README.Rmd generates README.md. -->
 
@@ -16,7 +18,6 @@ status](https://github.com/knapply/rcppsimdgeojson/workflows/R-CMD-check/badge.s
 coverage](https://codecov.io/gh/knapply/rcppsimdgeojson/branch/master/graph/badge.svg)](https://codecov.io/gh/knapply/rcppsimdgeojson?branch=master)
 [![License: GPL
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![HitCount](http://hits.dwyl.io/knapply/rcppsimdgeojson.svg)](http://hits.dwyl.io/knapply/rcppsimdgeojson)
 [![Depends-R](https://img.shields.io/badge/Depends-GNU_R%20%3E=%204.0-blue.svg)](https://www.r-project.org/)
 [![Depends-C++](https://img.shields.io/badge/Depends-C++17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![Depends-GCC](https://img.shields.io/badge/Depends-GCC%20%3E=%207-red.svg)](https://gcc.gnu.org/)
@@ -34,342 +35,225 @@ if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
 remotes::install_github("knapply/rcppsimdgeojson")
 ```
 
-### (Initial) Benchmarking
-
 ``` r
 geojson_files <- list.files(system.file("geojsonexamples", package = "rcppsimdgeojson"),
                             recursive = TRUE, pattern = "\\.geojson$", full.names = TRUE)
-geojson_files <- geojson_files[!grepl("largeMixedTest.geojson", geojson_files, fixed = TRUE)] # invalid
-
-lapply(geojson_files, rcppsimdgeojson:::.read_geojson)
+geojson_files <- geojson_files[!grepl("largeMixedTest", geojson_files, fixed = TRUE)]
+names(geojson_files) <- basename(geojson_files)
 ```
 
-    #> [[1]]
-    #> [[1]][[1]]
-    #> [1] 102.0   0.5
-    #> attr(,"class")
-    #> [1] "XY"    "POINT" "sfg"  
-    #> 
-    #> [[1]][[2]]
-    #>      [,1] [,2]
-    #> [1,]  102    0
-    #> [2,]  103    1
-    #> [3,]  104    0
-    #> [4,]  105    1
-    #> attr(,"class")
-    #> [1] "XY"         "LINESTRING" "sfg"       
-    #> 
-    #> [[1]][[3]]
-    #> [[1]]
-    #>      [,1] [,2]
-    #> [1,]  100    0
-    #> [2,]  101    0
-    #> [3,]  101    1
-    #> [4,]  100    1
-    #> [5,]  100    0
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"      "POLYGON" "sfg"    
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>  100    0  105    1 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[2]]
-    #> [[2]][[1]]
-    #> [[1]]
-    #> [[1]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   40   40
-    #> [2,]   20   45
-    #> [3,]   45   30
-    #> [4,]   40   40
-    #> 
-    #> 
-    #> [[2]]
-    #> [[2]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   20   35
-    #> [2,]   10   30
-    #> [3,]   10   10
-    #> [4,]   30    5
-    #> [5,]   45   20
-    #> [6,]   20   35
-    #> 
-    #> [[2]][[2]]
-    #>      [,1] [,2]
-    #> [1,]   30   20
-    #> [2,]   20   15
-    #> [3,]   20   25
-    #> [4,]   30   20
-    #> 
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"           "MULTIPOLYGON" "sfg"         
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10    5   45   45 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[3]]
-    #> [[3]][[1]]
-    #> [[1]]
-    #>      [,1] [,2]
-    #> [1,]   35   10
-    #> [2,]   45   45
-    #> [3,]   15   40
-    #> [4,]   10   20
-    #> [5,]   35   10
-    #> 
-    #> [[2]]
-    #>      [,1] [,2]
-    #> [1,]   20   30
-    #> [2,]   35   35
-    #> [3,]   30   20
-    #> [4,]   20   30
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"      "POLYGON" "sfg"    
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10   10   45   45 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[4]]
-    #> [[4]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   30   10
-    #> [2,]   10   30
-    #> [3,]   40   40
-    #> attr(,"class")
-    #> [1] "XY"         "LINESTRING" "sfg"       
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10   10   40   40 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[5]]
-    #> [[5]][[1]]
-    #> [[1]]
-    #>      [,1] [,2]
-    #> [1,]   10   10
-    #> [2,]   20   20
-    #> [3,]   10   40
-    #> 
-    #> [[2]]
-    #>      [,1] [,2]
-    #> [1,]   40   40
-    #> [2,]   30   30
-    #> [3,]   40   20
-    #> [4,]   30   10
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"              "MULTILINESTRING" "sfg"            
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10   10   40   40 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[6]]
-    #> [[6]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   10   40
-    #> [2,]   40   30
-    #> [3,]   20   20
-    #> [4,]   30   10
-    #> attr(,"class")
-    #> [1] "XY"         "MULTIPOINT" "sfg"       
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10   10   40   40 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[7]]
-    #> [[7]][[1]]
-    #> [[1]]
-    #> [[1]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   30   20
-    #> [2,]   45   40
-    #> [3,]   10   40
-    #> [4,]   30   20
-    #> 
-    #> 
-    #> [[2]]
-    #> [[2]][[1]]
-    #>      [,1] [,2]
-    #> [1,]   15    5
-    #> [2,]   40   10
-    #> [3,]   10   20
-    #> [4,]    5   10
-    #> [5,]   15    5
-    #> 
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"           "MULTIPOLYGON" "sfg"         
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>    5    5   45   40 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[8]]
-    #> [[8]][[1]]
-    #> [1] 30 10
-    #> attr(,"class")
-    #> [1] "XY"    "POINT" "sfg"  
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   30   10   30   10 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
-    #> 
-    #> [[9]]
-    #> [[9]][[1]]
-    #> [[1]]
-    #>      [,1] [,2]
-    #> [1,]   30   10
-    #> [2,]   40   40
-    #> [3,]   20   40
-    #> [4,]   10   20
-    #> [5,]   30   10
-    #> 
-    #> attr(,"class")
-    #> [1] "XY"      "POLYGON" "sfg"    
-    #> 
-    #> attr(,"bbox")
-    #> xmin ymin xmax ymax 
-    #>   10   10   40   40 
-    #> attr(,"n_empty")
-    #> [1] 0
-    #> attr(,"crs")
-    #> $input
-    #> [1] "4326"
-    #> 
-    #> $wkt
-    #> [1] "GEOGCS[\"WGS 84\",\n    DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n            AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n    PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n    UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n    AUTHORITY[\"EPSG\",\"4326\"]]"
-    #> 
-    #> attr(,"class")
-    #> [1] "crs"
-    #> attr(,"precision")
-    #> [1] 0
+## Conformance
 
-<!-- ```{r} -->
+``` r
+identical_w_sf <- vapply(
+  geojson_files, function(.file) {
+  identical(rcppsimdgeojson:::.fload_sfc(.file), sf::read_sf(.file)$geometry)
+  }, 
+  logical(1L)
+)
 
-<!-- microbenchmark::microbenchmark( -->
+all(identical_w_sf)
+```
 
-<!--   rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")), -->
+    #> [1] TRUE
 
-<!--   geojsonsf = geojsonsf::geojson_sfc("~/Downloads/bay_delta_89b.geojson"), -->
+``` r
+as.matrix(identical_w_sf)
+```
 
-<!--   sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson") -->
+    #>                           [,1]
+    #> featureCollection.geojson TRUE
+    #> holeyMultiPolygon.geojson TRUE
+    #> holeyPolygon.geojson      TRUE
+    #> lineString.geojson        TRUE
+    #> multiLineString.geojson   TRUE
+    #> multiPoint.geojson        TRUE
+    #> multiPolygon.geojson      TRUE
+    #> point.geojson             TRUE
+    #> polygon.geojson           TRUE
 
-<!--   , -->
+``` r
+big_geojson <- path.expand("~/Downloads/bay_delta_89b.geojson")
 
-<!--   times = 5 -->
+test <- rcppsimdgeojson:::.fload_sfc(big_geojson)
+target <- sf::read_sf(big_geojson)$geometry
 
-<!-- ) -->
+test
+```
 
-<!-- ``` -->
+    #> Geometry set for 258032 features 
+    #> geometry type:  MULTIPOLYGON
+    #> dimension:      XY
+    #> bbox:           xmin: -123.0052 ymin: 37.40251 xmax: -121.2558 ymax: 38.80345
+    #> CRS:            4326
+    #> First 5 geometries:
+
+``` r
+identical(test, target)
+```
+
+    #> [1] TRUE
+
+## Benchmarking
+
+### `<sfc>`
+
+#### String
+
+``` r
+geojson_strings <- vapply(geojson_files, function(.file) {
+  readChar(.file, nchars = file.size(.file))
+}, character(1L))
+
+
+lapply(geojson_strings, function(.geojson) {
+  microbenchmark::microbenchmark(
+    rcppsimdgeojson = rcppsimdgeojson:::.fparse_sfc(.geojson),
+    geojsonsf = geojsonsf:::rcpp_geojson_to_sfc(.geojson, expand_geometries = FALSE),
+    unit = "relative"
+  )
+})
+```
+
+    #> $featureCollection.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000  1.00000   100
+    #>        geojsonsf 1.874076 1.834803 4.121041 1.737544 1.573296 56.86297   100
+    #> 
+    #> $holeyMultiPolygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.430164 1.382618 1.443046 1.299463 1.300615 2.054296   100
+    #> 
+    #> $holeyPolygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.361085 1.381617 1.412262 1.335363 1.291944 1.469476   100
+    #> 
+    #> $lineString.geojson
+    #> Unit: relative
+    #>             expr     min       lq     mean   median       uq       max neval
+    #>  rcppsimdgeojson 1.00000 1.000000 1.000000 1.000000 1.000000 1.0000000   100
+    #>        geojsonsf 1.34042 1.323556 1.237217 1.253763 1.221113 0.6764029   100
+    #> 
+    #> $multiLineString.geojson
+    #> Unit: relative
+    #>             expr      min       lq    mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.00000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.285808 1.274137 1.32059 1.229296 1.220007 2.340503   100
+    #> 
+    #> $multiPoint.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.352192 1.341144 1.303338 1.271494 1.268141 1.601252   100
+    #> 
+    #> $multiPolygon.geojson
+    #> Unit: relative
+    #>             expr     min       lq     mean   median      uq       max neval
+    #>  rcppsimdgeojson 1.00000 1.000000 1.000000 1.000000 1.00000 1.0000000   100
+    #>        geojsonsf 1.24821 1.240183 1.221959 1.212003 1.21034 0.8049568   100
+    #> 
+    #> $point.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq       max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.0000000   100
+    #>        geojsonsf 1.378581 1.296821 1.221089 1.261387 1.241391 0.6298718   100
+    #> 
+    #> $polygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.376806 1.365994 1.338474 1.308208 1.264657 2.372659   100
+
+#### File
+
+``` r
+lapply(geojson_files, function(.file) {
+  microbenchmark::microbenchmark(
+    rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(.file),
+    geojsonsf = geojsonsf:::rcpp_read_sfc_file(.file, mode = "rb",
+                                               flatten_geometries = FALSE),
+    unit = "relative"
+  )
+})
+```
+
+    #> $featureCollection.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq       max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.0000000   100
+    #>        geojsonsf 1.589574 1.417262 1.451384 1.677049 1.600031 0.6282627   100
+    #> 
+    #> $holeyMultiPolygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.275708 1.288546 1.150914 1.252144 1.239742 0.669996   100
+    #> 
+    #> $holeyPolygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.286434 1.275782 1.344583 1.245294 1.234352 2.546523   100
+    #> 
+    #> $lineString.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq       max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.0000000   100
+    #>        geojsonsf 1.248774 1.236203 1.087627 1.186793 1.178781 0.5228065   100
+    #> 
+    #> $multiLineString.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median      uq       max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.00000 1.0000000   100
+    #>        geojsonsf 1.206777 1.227156 1.255611 1.219694 1.19505 0.5102791   100
+    #> 
+    #> $multiPoint.geojson
+    #> Unit: relative
+    #>             expr      min     lq     mean   median       uq       max neval
+    #>  rcppsimdgeojson 1.000000 1.0000 1.000000 1.000000 1.000000 1.0000000   100
+    #>        geojsonsf 1.227284 1.2185 1.144125 1.181237 1.181372 0.6567647   100
+    #> 
+    #> $multiPolygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean  median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.00000 1.000000 1.000000   100
+    #>        geojsonsf 1.127493 1.125216 1.153369 1.07494 1.162353 1.567482   100
+    #> 
+    #> $point.geojson
+    #> Unit: relative
+    #>             expr      min       lq     mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.220664 1.209948 1.180893 1.173892 1.147677 2.137868   100
+    #> 
+    #> $polygon.geojson
+    #> Unit: relative
+    #>             expr      min       lq    mean   median       uq      max neval
+    #>  rcppsimdgeojson 1.000000 1.000000 1.00000 1.000000 1.000000 1.000000   100
+    #>        geojsonsf 1.248989 1.220673 1.20538 1.180559 1.181003 1.953069   100
+
+##### Big File
+
+``` r
+sprintf("%f MB", file.size(big_geojson) * 1e-6)
+```
+
+    #> [1] "103.882182 MB"
+
+``` r
+microbenchmark::microbenchmark(
+  rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(big_geojson),
+  geojsonsf = geojsonsf::geojson_sfc(big_geojson)
+  ,
+  times = 5
+)
+```
+
+    #> Unit: milliseconds
+    #>             expr       min        lq      mean    median        uq       max neval
+    #>  rcppsimdgeojson  557.1922  609.4428  702.2059  705.4532  813.1291  825.8122     5
+    #>        geojsonsf 1369.2176 1581.7968 1801.1519 1800.0858 1858.8099 2395.8495     5

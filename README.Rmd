@@ -34,7 +34,6 @@ options(width = 150)
 [![R build status](https://github.com/knapply/rcppsimdgeojson/workflows/R-CMD-check/badge.svg)](https://github.com/knapply/rcppsimdgeojson/actions?workflow=R-CMD-check)
 [![Codecov test coverage](https://codecov.io/gh/knapply/rcppsimdgeojson/branch/master/graph/badge.svg)](https://codecov.io/gh/knapply/rcppsimdgeojson?branch=master)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![HitCount](http://hits.dwyl.io/knapply/rcppsimdgeojson.svg)](http://hits.dwyl.io/knapply/rcppsimdgeojson)
 [![Depends-R](https://img.shields.io/badge/Depends-GNU_R >= 4.0-blue.svg)](https://www.r-project.org/)
 [![Depends-C++](https://img.shields.io/badge/Depends-C++17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![Depends-GCC](https://img.shields.io/badge/Depends-GCC >= 7-red.svg)](https://gcc.gnu.org/)
@@ -56,27 +55,93 @@ remotes::install_github("knapply/rcppsimdgeojson")
 
 
 
-
 ```{r}
 geojson_files <- list.files(system.file("geojsonexamples", package = "rcppsimdgeojson"),
                             recursive = TRUE, pattern = "\\.geojson$", full.names = TRUE)
-geojson_files <- geojson_files[!grepl("largeMixedTest.geojson", geojson_files, fixed = TRUE)] # invalid
+geojson_files <- geojson_files[!grepl("largeMixedTest", geojson_files, fixed = TRUE)]
+names(geojson_files) <- basename(geojson_files)
+```
 
-lapply(geojson_files, rcppsimdgeojson:::.read_geojson)
+
+## Conformance
+
+```{r}
+identical_w_sf <- vapply(
+  geojson_files, function(.file) {
+  identical(rcppsimdgeojson:::.fload_sfc(.file), sf::read_sf(.file)$geometry)
+  }, 
+  logical(1L)
+)
+
+all(identical_w_sf)
+as.matrix(identical_w_sf)
+```
+
+
+```{r}
+big_geojson <- path.expand("~/Downloads/bay_delta_89b.geojson")
+
+test <- rcppsimdgeojson:::.fload_sfc(big_geojson)
+target <- sf::read_sf(big_geojson)$geometry
+
+test
+
+identical(test, target)
+```
+
+
+## Benchmarking
+
+### `<sfc>`
+
+#### String
+
+```{r}
+geojson_strings <- vapply(geojson_files, function(.file) {
+  readChar(.file, nchars = file.size(.file))
+}, character(1L))
+
+
+lapply(geojson_strings, function(.geojson) {
+  microbenchmark::microbenchmark(
+    rcppsimdgeojson = rcppsimdgeojson:::.fparse_sfc(.geojson),
+    geojsonsf = geojsonsf:::rcpp_geojson_to_sfc(.geojson, expand_geometries = FALSE),
+    unit = "relative"
+  )
+})
 ```
 
 
 
 
-<!-- ```{r} -->
-<!-- microbenchmark::microbenchmark( -->
-<!--   rcppsimdgeojson = rcppsimdgeojson:::.read_geojson(path.expand("~/Downloads/bay_delta_89b.geojson")), -->
-<!--   geojsonsf = geojsonsf::geojson_sfc("~/Downloads/bay_delta_89b.geojson"), -->
-<!--   sf = sf::read_sf("~/Downloads/bay_delta_89b.geojson") -->
-<!--   , -->
-<!--   times = 5 -->
-<!-- ) -->
-<!-- ``` -->
+#### File
+
+```{r}
+lapply(geojson_files, function(.file) {
+  microbenchmark::microbenchmark(
+    rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(.file),
+    geojsonsf = geojsonsf:::rcpp_read_sfc_file(.file, mode = "rb",
+                                               flatten_geometries = FALSE),
+    unit = "relative"
+  )
+})
+```
+
+##### Big File
+
+```{r}
+sprintf("%f MB", file.size(big_geojson) * 1e-6)
+
+microbenchmark::microbenchmark(
+  rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(big_geojson),
+  geojsonsf = geojsonsf::geojson_sfc(big_geojson)
+  ,
+  times = 5
+)
+```
+
+
+
 
 
 

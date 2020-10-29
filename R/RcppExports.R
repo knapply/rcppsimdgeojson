@@ -5,11 +5,11 @@
     .Call(`_rcppsimdgeojson_hello`)
 }
 
-.parse_geojson <- function(x, on_demand = FALSE) {
-    .Call(`_rcppsimdgeojson_parse_geojson`, x, on_demand)
+.fparse_sfc <- function(x, on_demand = FALSE) {
+    .Call(`_rcppsimdgeojson_fparse_sfc`, x, on_demand)
 }
 
-.read_geojson <- function(x) {
-    .Call(`_rcppsimdgeojson_read_geojson`, x)
+.fload_sfc <- function(x) {
+    .Call(`_rcppsimdgeojson_fload_sfc`, x)
 }
 

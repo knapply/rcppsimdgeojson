@@ -6,8 +6,8 @@
 // [[Rcpp::export(.hello)]]
 bool hello() { return true; }
 
-// [[Rcpp::export(.parse_geojson)]]
-SEXP parse_geojson(const Rcpp::CharacterVector& x,
+// [[Rcpp::export(.fparse_sfc)]]
+SEXP fparse_sfc(const Rcpp::CharacterVector& x,
                    const bool on_demand = false) {
   if (std::size(x) > 0) {
     simdjson::dom::parser parser;
@@ -21,8 +21,8 @@ SEXP parse_geojson(const Rcpp::CharacterVector& x,
   return R_NilValue;
 }
 
-// [[Rcpp::export(.read_geojson)]]
-SEXP read_geojson(const Rcpp::CharacterVector& x) {
+// [[Rcpp::export(.fload_sfc)]]
+SEXP fload_sfc(const Rcpp::CharacterVector& x) {
 
   if (std::size(x) > 0) {
     simdjson::dom::parser parser;
