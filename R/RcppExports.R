@@ -5,11 +5,11 @@
     .Call(`_rcppsimdgeojson_hello`)
 }
 
-.fparse_sfc <- function(x, on_demand = FALSE) {
-    .Call(`_rcppsimdgeojson_fparse_sfc`, x, on_demand)
+.fparse_sfc <- function(x, expand_geometries = FALSE) {
+    .Call(`_rcppsimdgeojson_fparse_sfc`, x, expand_geometries)
 }
 
-.fload_sfc <- function(x) {
-    .Call(`_rcppsimdgeojson_fload_sfc`, x)
+.fload_sfc <- function(x, expand_geometries = FALSE) {
+    .Call(`_rcppsimdgeojson_fload_sfc`, x, expand_geometries)
 }
 

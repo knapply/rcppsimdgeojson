@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
   fig.align = "center",
   comment = "#>",
   fig.path = "man/figures/",
-  message = FALSE,
+  # message = FALSE,
   warning = FALSE
 )
 
@@ -59,6 +59,7 @@ remotes::install_github("knapply/rcppsimdgeojson")
 geojson_files <- list.files(system.file("geojsonexamples", package = "rcppsimdgeojson"),
                             recursive = TRUE, pattern = "\\.geojson$", full.names = TRUE)
 geojson_files <- geojson_files[!grepl("largeMixedTest", geojson_files, fixed = TRUE)]
+
 names(geojson_files) <- basename(geojson_files)
 ```
 
@@ -73,20 +74,17 @@ identical_w_sf <- vapply(
   logical(1L)
 )
 
-all(identical_w_sf)
+stopifnot(all(identical_w_sf))
 as.matrix(identical_w_sf)
-```
 
-
-```{r}
 big_geojson <- path.expand("~/Downloads/bay_delta_89b.geojson")
 
 test <- rcppsimdgeojson:::.fload_sfc(big_geojson)
 target <- sf::read_sf(big_geojson)$geometry
+stopifnot(identical(test, target))
 
 test
-
-identical(test, target)
+plot(test)
 ```
 
 
@@ -134,7 +132,8 @@ sprintf("%f MB", file.size(big_geojson) * 1e-6)
 
 microbenchmark::microbenchmark(
   rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(big_geojson),
-  geojsonsf = geojsonsf::geojson_sfc(big_geojson)
+  geojsonsf = geojsonsf:::rcpp_read_sfc_file(big_geojson, mode = "rb",
+                                             flatten_geometries = FALSE)
   ,
   times = 5
 )

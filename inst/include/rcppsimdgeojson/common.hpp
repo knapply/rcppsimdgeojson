@@ -4,8 +4,11 @@
 #include <optional>
 #include <string_view>
 
-#include <RcppSimdJson.hpp>
-#include "simdjson.h"
 
+
+// #define SIMDJSON_EXCEPTIONS 0
+#include <simdjson.h>
+
+#include <Rcpp.h>
 
 #endif

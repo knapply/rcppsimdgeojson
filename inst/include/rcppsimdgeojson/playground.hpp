@@ -1,7 +1,7 @@
 #ifndef __RCPPSIMDGEOJSON__PLAYGROUND_HPP__
 #define __RCPPSIMDGEOJSON__PLAYGROUND_HPP__
 
-#include <iterator>
+
 #include <limits>
 #include <string_view>
 #include <type_traits>
@@ -34,15 +34,18 @@ constexpr double Z = 0.0;
 
 } // namespace defaults
 
+
 enum class Type {
-  Point,             // POINT
-  MultiPoint,        // MULTIPOINT
-  LineString,        // LINESTRING
-  MultiLineString,   // MULTILINESTRING
-  Polygon,           // POLYGON
-  MultiPolygon,      // MULTIPOLYGON
-  FeatureCollection, // GEOMETRY ?
+  Point,              // POINT
+  MultiPoint,         // MULTIPOINT
+  LineString,         // LINESTRING
+  MultiLineString,    // MULTILINESTRING
+  Polygon,            // POLYGON
+  MultiPolygon,       // MULTIPOLYGON
+  GeometryCollection, // GEOMETRY ?
+  FeatureCollection,  // GEOMETRY ?
   UNKNOWN,
+  ANY,
 };
 
 
@@ -54,6 +57,7 @@ enum class Dimensions {
 
 
 inline SEXP dispatch_parse(simdjson::dom::object); // forward-declaration
+
 
 inline constexpr Type get_feature_type(const std::string_view feature_type) {
   using namespace std::literals::string_view_literals;
@@ -70,6 +74,8 @@ inline constexpr Type get_feature_type(const std::string_view feature_type) {
     return Type::Polygon;
   } else if (feature_type == "MultiPolygon"sv) {
     return Type::MultiPolygon;
+  } else if (feature_type == "GeometryCollection"sv) {
+    return Type::GeometryCollection;
   } else if (feature_type == "FeatureCollection"sv) {
     return Type::FeatureCollection;
   } else {
@@ -82,8 +88,11 @@ static_assert(get_feature_type("LineString") == Type::LineString);
 static_assert(get_feature_type("MultiLineString") == Type::MultiLineString);
 static_assert(get_feature_type("Polygon") == Type::Polygon);
 static_assert(get_feature_type("MultiPolygon") == Type::MultiPolygon);
+static_assert(get_feature_type("GeometryCollection") ==
+              Type::GeometryCollection);
 static_assert(get_feature_type("FeatureCollection") == Type::FeatureCollection);
 static_assert(get_feature_type("junk") == Type::UNKNOWN);
+static_assert(get_feature_type("") == Type::UNKNOWN);
 
 inline Type get_feature_type(const simdjson::dom::object obj) {
   if (auto [feature_type, error] = obj["type"].get_string(); !error) {
@@ -112,7 +121,8 @@ template <Type geom_type> constexpr auto get_coord_T() {
   if constexpr (geom_type == Type::MultiPolygon) {
     return std::vector<std::vector<Rcpp::NumericMatrix>>();
   }
-  if constexpr (geom_type == Type::FeatureCollection) {
+  if constexpr (geom_type == Type::GeometryCollection ||
+                geom_type == Type::FeatureCollection) {
     return Rcpp::List();
   }
 }
@@ -166,11 +176,11 @@ inline Rcpp::CharacterVector get_sfg_class() {
     }
   }
 
-  if constexpr (geom_type == Type::FeatureCollection) {
+  if constexpr (geom_type == Type::GeometryCollection) {
     if constexpr (dims == Dimensions::XY) {
-      return {"XY", "GEOMETRY", "sfg"};
+      return {"XY", "GEOMETRYCOLLECTION", "sfg"};
     } else {
-      return {"XYZ", "GEOMETRY", "sfg"};
+      return {"XYZ", "GEOMETRYCOLLECTION", "sfg"};
     }
   }
 
@@ -374,8 +384,8 @@ inline auto parse_coords(simdjson::dom::array coords) -> coord_T<geom_type> {
         auto x_it = parsed.column(0).begin();
         auto y_it = parsed.column(1).begin();
         for (simdjson::dom::array&& point : polygon_or_hole_array) {
-          *x_it++ = point.at(0);
-          *y_it++ = point.at(1);
+          *x_it++ = point.at(0).get_double().value();
+          *y_it++ = point.at(1).get_double().value();
         }
         *out_it++ = parsed;
       }
@@ -391,9 +401,9 @@ inline auto parse_coords(simdjson::dom::array coords) -> coord_T<geom_type> {
         auto y_it = parsed.column(1).begin();
         auto z_it = parsed.column(2).begin();
         for (simdjson::dom::array&& point : polygon_or_hole_array) {
-          *x_it++ = point.at(0);
-          *y_it++ = point.at(1);
-          *z_it++ = point.at(2);
+          *x_it++ = point.at(0).get_double().value();
+          *y_it++ = point.at(1).get_double().value();
+          *z_it++ = point.at(2).get_double().value();
         }
         *out_it++ = parsed;
       }
@@ -409,8 +419,8 @@ inline auto parse_coords(simdjson::dom::array coords) -> coord_T<geom_type> {
         auto y_it = parsed.column(1).begin();
         auto z_it = parsed.column(2).begin();
         for (simdjson::dom::array&& point : polygon_or_hole_array) {
-          *x_it++ = point.at(0);
-          *y_it++ = point.at(1);
+          *x_it++ = point.at(0).get_double().value();
+          *y_it++ = point.at(1).get_double().value();
           *z_it++ = std::size(point) == 2 ? defaults::Z
                                           : point.at(2).get_double().value();
         }
@@ -473,7 +483,6 @@ struct bounding_box {
     this->ymax = _ymax > this->ymax ? _ymax : this->ymax;
   }
 
-
   void update(const double _xmin, const double _ymin, const double _zmin,
               const double _xmax, const double _ymax, const double _zmax) {
     this->xmin = _xmin < this->xmin ? _xmin : this->xmin;
@@ -527,70 +536,81 @@ template <Type geom_type, Dimensions dims> struct sfg {
                 coords[0], coords[1], coords[2]};
       }
     }
+
     if constexpr (geom_type == Type::MultiPoint ||
                   geom_type == Type::LineString) {
+      const auto [x_min, x_max] = std::minmax_element(
+          std::cbegin(coords.column(0)), std::cend(coords.column(0)));
+      const auto [y_min, y_max] = std::minmax_element(
+          std::cbegin(coords.column(1)), std::cend(coords.column(1)));
+
       if constexpr (dims == Dimensions::XY) {
-        return {Rcpp::min(coords.column(0)), Rcpp::min(coords.column(1)),
-                //
-                Rcpp::max(coords.column(0)), Rcpp::max(coords.column(1))};
+        return {*x_min, *y_min, *x_max, *y_max};
       } else {
-        return {Rcpp::min(coords.column(0)), Rcpp::min(coords.column(1)),
-                Rcpp::min(coords.column(2)),
-                //
-                Rcpp::max(coords.column(0)), Rcpp::max(coords.column(1)),
-                Rcpp::max(coords.column(2))};
+        const auto [z_min, z_max] = std::minmax_element(
+            std::cbegin(coords.column(2)), std::cend(coords.column(2)));
+        return {*x_min, *y_min, *z_min, *x_max, *y_max, *z_max};
       }
     }
+
     if constexpr (geom_type == Type::MultiLineString) {
       auto out = bounding_box();
+
       for (auto&& mat : coords) {
+        const auto [x_min, x_max] = std::minmax_element(
+            std::cbegin(mat.column(0)), std::cend(mat.column(0)));
+        const auto [y_min, y_max] = std::minmax_element(
+            std::cbegin(mat.column(1)), std::cend(mat.column(1)));
+
         if constexpr (dims == Dimensions::XY) {
-          out.update(Rcpp::min(mat.column(0)), Rcpp::min(mat.column(1)),
-                     //
-                     Rcpp::max(mat.column(0)), Rcpp::max(mat.column(1)));
+          out.update(*x_min, *y_min, *x_max, *y_max);
         } else {
-          out.update(Rcpp::min(mat.column(0)), Rcpp::min(mat.column(1)),
-                     Rcpp::min(mat.column(2)),
-                     //
-                     Rcpp::max(mat.column(0)), Rcpp::max(mat.column(1)),
-                     Rcpp::max(mat.column(2)));
+          const auto [z_min, z_max] = std::minmax_element(
+              std::cbegin(mat.column(2)), std::cend(mat.column(2)));
+          out.update(*x_min, *y_min, *z_min, *x_max, *y_max, *z_max);
         }
       }
+
       return out;
     }
+
     if constexpr (geom_type == Type::Polygon) {
       // coords[0], because subsequent matrices are holes in the polygon
+      const auto [x_min, x_max] = std::minmax_element(
+          std::cbegin(coords[0].column(0)), std::cend(coords[0].column(0)));
+      const auto [y_min, y_max] = std::minmax_element(
+          std::cbegin(coords[0].column(1)), std::cend(coords[0].column(1)));
+
       if constexpr (dims == Dimensions::XY) {
-        return {Rcpp::min(coords[0].column(0)), Rcpp::min(coords[0].column(1)),
-                //
-                Rcpp::max(coords[0].column(0)), Rcpp::max(coords[0].column(1))};
+        return {*x_min, *y_min, *x_max, *y_max};
       } else {
-        return {Rcpp::min(coords[0].column(0)), Rcpp::min(coords[0].column(1)),
-                Rcpp::min(coords[0].column(2)),
-                //
-                Rcpp::max(coords[0].column(0)), Rcpp::max(coords[0].column(1)),
-                Rcpp::max(coords[0].column(2))};
+        const auto [z_min, z_max] = std::minmax_element(
+            std::cbegin(coords[0].column(2)), std::cend(coords[0].column(2)));
+        return {*x_min, *y_min, *z_min, *x_max, *y_max, *z_max};
       }
     }
+
     if constexpr (geom_type == Type::MultiPolygon) {
       auto out = bounding_box();
+
       for (auto&& list_of_mats : coords) {
+        const auto [x_min, x_max] =
+            std::minmax_element(std::cbegin(list_of_mats[0].column(0)),
+                                std::cend(list_of_mats[0].column(0)));
+        const auto [y_min, y_max] =
+            std::minmax_element(std::cbegin(list_of_mats[0].column(1)),
+                                std::cend(list_of_mats[0].column(1)));
+
         if constexpr (dims == Dimensions::XY) {
-          out.update(Rcpp::min(list_of_mats[0].column(0)),
-                     Rcpp::min(list_of_mats[0].column(1)),
-                     //
-                     Rcpp::max(list_of_mats[0].column(0)),
-                     Rcpp::max(list_of_mats[0].column(1)));
+          out.update(*x_min, *y_min, *x_max, *y_max);
         } else {
-          out.update(Rcpp::min(list_of_mats[0].column(0)),
-                     Rcpp::min(list_of_mats[0].column(1)),
-                     Rcpp::min(list_of_mats[0].column(2)),
-                     //
-                     Rcpp::max(list_of_mats[0].column(0)),
-                     Rcpp::max(list_of_mats[0].column(1)),
-                     Rcpp::max(list_of_mats[0].column(2)));
+          const auto [z_min, z_max] =
+              std::minmax_element(std::cbegin(list_of_mats[0].column(2)),
+                                  std::cend(list_of_mats[0].column(2)));
+          out.update(*x_min, *y_min, *z_min, *x_max, *y_max, *z_max);
         }
       }
+
       return out;
     }
   }
@@ -613,7 +633,12 @@ template <Type geom_type, Dimensions dims> struct sfg {
 };
 
 
-struct sfc {
+constexpr bool YES_EXPAND_GEOMETRIES = true;
+constexpr bool NO_EXPAND_GEOMETRIES = false;
+
+template <Type geometry_type = Type::ANY,
+          bool expand_geometries = NO_EXPAND_GEOMETRIES>
+class sfc {
   Rcpp::List sfgs;
   decltype(std::begin(sfgs)) it_sfgs = std::begin(sfgs);
 
@@ -621,11 +646,19 @@ struct sfc {
   R_xlen_t class_index = 0;
   std::unordered_map<Type, R_xlen_t> classes_;
 
+  bool any_XYZ = false;
+
   template <Type geom_type, Dimensions dims>
   void add_sfg(simdjson::dom::array coordinates) {
-    if (classes_.find(geom_type) == std::end(classes_)) {
-      classes_[geom_type] = class_index++;
+    if constexpr (!expand_geometries) {
+      if (classes_.find(geom_type) == std::end(classes_)) {
+        classes_[geom_type] = class_index++;
+      }
+      if (dims != Dimensions::XY) {
+        any_XYZ = true;
+      }
     }
+
     auto geom = sfg<geom_type, dims>(coordinates);
     bbox.update(geom.bbox());
     *it_sfgs++ = geom.to_r();
@@ -667,7 +700,7 @@ struct sfc {
   }
 
 
-  Rcpp::CharacterVector sfc_classe() const {
+  Rcpp::CharacterVector sfc_class() const {
     switch (std::size(classes_)) {
       case 0:
         Rcpp::stop("no classes?");
@@ -715,8 +748,6 @@ struct sfc {
         }
         break;
       }
-
-
       case Type::MultiPoint: {
         switch (simdjson::dom::array coords = feature["coordinates"];
                 get_dimensions<Type::MultiPoint>(coords)) {
@@ -755,8 +786,6 @@ struct sfc {
         }
         break;
       }
-
-
       case Type::MultiLineString: {
         switch (simdjson::dom::array coords = feature["coordinates"];
                 get_dimensions<Type::MultiLineString>(coords)) {
@@ -795,8 +824,6 @@ struct sfc {
         }
         break;
       }
-
-
       case Type::MultiPolygon: {
         switch (simdjson::dom::array coords = feature["coordinates"];
                 get_dimensions<Type::MultiPolygon>(coords)) {
@@ -816,17 +843,35 @@ struct sfc {
         break;
       }
 
+
       default:
         Rcpp::stop("wtf");
     }
   }
 
 
-  sfc(simdjson::dom::object feature) : sfgs(1) { add_sfg(feature); }
+public:
+  sfc(simdjson::dom::object obj) : sfgs(1) { add_sfg(obj); }
 
-  sfc(simdjson::dom::array features) : sfgs(std::size(features)) {
-    for (simdjson::dom::object&& obj : features) {
-      add_sfg(obj["geometry"].get_object().value());
+  sfc(simdjson::dom::array array) : sfgs(std::size(array)) {
+    if constexpr (geometry_type == Type::FeatureCollection) {
+      for (simdjson::dom::object&& obj : array) {
+        this->add_sfg(obj["geometry"].get_object().value());
+      }
+    }
+
+    if constexpr (geometry_type == Type::GeometryCollection) {
+      for (simdjson::dom::object&& obj : array) {
+        this->add_sfg(obj);
+      }
+
+      if constexpr (!expand_geometries) {
+        this->sfgs.attr("class") =
+            this->any_XYZ
+                ? get_sfg_class<Type::GeometryCollection, Dimensions::XYZ>()
+                : get_sfg_class<Type::GeometryCollection, Dimensions::XY>();
+        this->sfgs = Rcpp::List::create(this->sfgs);
+      }
     }
   }
 
@@ -839,15 +884,25 @@ struct sfc {
                                   _["wkt"] = defaults::crs::wkt);
     crs.attr("class") = "crs";
     sfgs.attr("crs") = crs;
-    sfgs.attr("class") = sfc_classe();
+
+    if constexpr (geometry_type == Type::GeometryCollection) {
+      sfgs.attr("class") =
+          Rcpp::CharacterVector::create("sfc_GEOMETRYCOLLECTION", "sfc");
+    } else {
+      sfgs.attr("class") = sfc_class();
+    }
+
     sfgs.attr("precision") = 0.0;
     sfgs.attr("bbox") = bbox.to_r();
 
     if (bbox.needs_z_range()) {
       sfgs.attr("z_range") = bbox.z_range();
     }
-    if (std::size(classes_) != 1) {
-      sfgs.attr("classes") = classes();
+
+    if constexpr (geometry_type != Type::GeometryCollection) {
+      if (std::size(classes_) != 1) {
+        sfgs.attr("classes") = classes();
+      }
     }
 
     return sfgs;
@@ -855,9 +910,23 @@ struct sfc {
 };
 
 
-inline SEXP dispatch_parse(simdjson::dom::object obj) {
-  if (std::string_view type = obj["type"]; type == "FeatureCollection") {
-    return sfc(obj["features"].get_array()).to_r();
+inline SEXP dispatch_parse(simdjson::dom::object obj,
+                           const bool expand_geometries) {
+  const std::string_view type = obj["type"];
+
+  if (type == "FeatureCollection") {
+    return sfc<Type::FeatureCollection>(obj["features"].get_array().value())
+        .to_r();
+
+  } else if (type == "GeometryCollection") {
+    return expand_geometries
+               ? sfc<Type::GeometryCollection, YES_EXPAND_GEOMETRIES>(
+                     obj["geometries"].get_array().value())
+                     .to_r()
+               : sfc<Type::GeometryCollection, NO_EXPAND_GEOMETRIES>(
+                     obj["geometries"].get_array().value())
+                     .to_r();
+
   } else {
     return sfc(obj).to_r();
   }

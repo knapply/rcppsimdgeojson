@@ -16,25 +16,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // fparse_sfc
-SEXP fparse_sfc(const Rcpp::CharacterVector& x, const bool on_demand);
-RcppExport SEXP _rcppsimdgeojson_fparse_sfc(SEXP xSEXP, SEXP on_demandSEXP) {
+SEXP fparse_sfc(const Rcpp::CharacterVector& x, const bool expand_geometries);
+RcppExport SEXP _rcppsimdgeojson_fparse_sfc(SEXP xSEXP, SEXP expand_geometriesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const bool >::type on_demand(on_demandSEXP);
-    rcpp_result_gen = Rcpp::wrap(fparse_sfc(x, on_demand));
+    Rcpp::traits::input_parameter< const bool >::type expand_geometries(expand_geometriesSEXP);
+    rcpp_result_gen = Rcpp::wrap(fparse_sfc(x, expand_geometries));
     return rcpp_result_gen;
 END_RCPP
 }
 // fload_sfc
-SEXP fload_sfc(const Rcpp::CharacterVector& x);
-RcppExport SEXP _rcppsimdgeojson_fload_sfc(SEXP xSEXP) {
+SEXP fload_sfc(const Rcpp::CharacterVector& x, const bool expand_geometries);
+RcppExport SEXP _rcppsimdgeojson_fload_sfc(SEXP xSEXP, SEXP expand_geometriesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(fload_sfc(x));
+    Rcpp::traits::input_parameter< const bool >::type expand_geometries(expand_geometriesSEXP);
+    rcpp_result_gen = Rcpp::wrap(fload_sfc(x, expand_geometries));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -42,7 +43,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_rcppsimdgeojson_hello", (DL_FUNC) &_rcppsimdgeojson_hello, 0},
     {"_rcppsimdgeojson_fparse_sfc", (DL_FUNC) &_rcppsimdgeojson_fparse_sfc, 2},
-    {"_rcppsimdgeojson_fload_sfc", (DL_FUNC) &_rcppsimdgeojson_fload_sfc, 1},
+    {"_rcppsimdgeojson_fload_sfc", (DL_FUNC) &_rcppsimdgeojson_fload_sfc, 2},
     {NULL, NULL, 0}
 };
 

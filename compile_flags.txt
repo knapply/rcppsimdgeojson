@@ -1,4 +1,4 @@
-clang++-9
+clang++-7
 -std=c++17
 -O3
 -I/usr/share/R/include/
