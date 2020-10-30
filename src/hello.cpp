@@ -5,6 +5,14 @@
 // [[Rcpp::export(.hello)]]
 bool hello() { return true; }
 
+
+//' Parse GeoJSON Strings
+//'
+//' @param x GeoJSON string
+//'
+//' @param expand_geometries default: `FALSE`
+//'
+//'
 // [[Rcpp::export(.fparse_sfc)]]
 SEXP fparse_sfc(const Rcpp::CharacterVector& x,
                 const bool expand_geometries = false) {
@@ -20,6 +28,14 @@ SEXP fparse_sfc(const Rcpp::CharacterVector& x,
   return R_NilValue;
 }
 
+
+//' Load GeoJSON Files
+//'
+//' @param x GeoJSON file
+//'
+//' @param expand_geometries default: `FALSE`
+//'
+//'
 // [[Rcpp::export(.fload_sfc)]]
 SEXP fload_sfc(const Rcpp::CharacterVector& x,
                const bool expand_geometries = false) {

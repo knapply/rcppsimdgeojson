@@ -4,7 +4,7 @@ output:
   github_document:
     html_preview: true
     toc: true
-    toc_depth: 2
+    toc_depth: 5
   html_document:
     keep_md: yes
 always_allow_html: yes
@@ -92,7 +92,38 @@ plot(test)
 
 ### `<sfc>`
 
-#### String
+
+#### Big File
+
+```{r}
+sprintf("%f MB", file.size(big_geojson) * 1e-6)
+
+microbenchmark::microbenchmark(
+  rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(big_geojson),
+  geojsonsf = geojsonsf:::rcpp_read_sfc_file(big_geojson, mode = "rb",
+                                             flatten_geometries = FALSE)
+  ,
+  times = 5
+)
+```
+
+
+#### Tiny Files
+
+```{r}
+lapply(geojson_files, function(.file) {
+  microbenchmark::microbenchmark(
+    rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(.file),
+    geojsonsf = geojsonsf:::rcpp_read_sfc_file(.file, mode = "rb",
+                                               flatten_geometries = FALSE),
+    unit = "relative"
+  )
+})
+```
+
+
+
+#### Tiny Strings
 
 ```{r}
 geojson_strings <- vapply(geojson_files, function(.file) {
@@ -112,32 +143,7 @@ lapply(geojson_strings, function(.geojson) {
 
 
 
-#### File
 
-```{r}
-lapply(geojson_files, function(.file) {
-  microbenchmark::microbenchmark(
-    rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(.file),
-    geojsonsf = geojsonsf:::rcpp_read_sfc_file(.file, mode = "rb",
-                                               flatten_geometries = FALSE),
-    unit = "relative"
-  )
-})
-```
-
-##### Big File
-
-```{r}
-sprintf("%f MB", file.size(big_geojson) * 1e-6)
-
-microbenchmark::microbenchmark(
-  rcppsimdgeojson = rcppsimdgeojson:::.fload_sfc(big_geojson),
-  geojsonsf = geojsonsf:::rcpp_read_sfc_file(big_geojson, mode = "rb",
-                                             flatten_geometries = FALSE)
-  ,
-  times = 5
-)
-```
 
 
 

@@ -5,10 +5,24 @@
     .Call(`_rcppsimdgeojson_hello`)
 }
 
+#' Parse GeoJSON Strings
+#'
+#' @param x GeoJSON string
+#'
+#' @param expand_geometries default: `FALSE`
+#'
+#'
 .fparse_sfc <- function(x, expand_geometries = FALSE) {
     .Call(`_rcppsimdgeojson_fparse_sfc`, x, expand_geometries)
 }
 
+#' Load GeoJSON Files
+#'
+#' @param x GeoJSON file
+#'
+#' @param expand_geometries default: `FALSE`
+#'
+#'
 .fload_sfc <- function(x, expand_geometries = FALSE) {
     .Call(`_rcppsimdgeojson_fload_sfc`, x, expand_geometries)
 }
