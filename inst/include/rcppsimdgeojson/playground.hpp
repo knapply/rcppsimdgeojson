@@ -856,21 +856,20 @@ public:
   sfc(simdjson::dom::array array) : sfgs(std::size(array)) {
     if constexpr (geometry_type == Type::FeatureCollection) {
       for (simdjson::dom::object&& obj : array) {
-        this->add_sfg(obj["geometry"].get_object().value());
+        add_sfg(obj["geometry"].get_object().value());
       }
     }
 
     if constexpr (geometry_type == Type::GeometryCollection) {
       for (simdjson::dom::object&& obj : array) {
-        this->add_sfg(obj);
+        add_sfg(obj);
       }
 
       if constexpr (!expand_geometries) {
-        this->sfgs.attr("class") =
-            this->any_XYZ
-                ? get_sfg_class<Type::GeometryCollection, Dimensions::XYZ>()
-                : get_sfg_class<Type::GeometryCollection, Dimensions::XY>();
-        this->sfgs = Rcpp::List::create(this->sfgs);
+        sfgs.attr("class") =
+            any_XYZ ? get_sfg_class<Type::GeometryCollection, Dimensions::XYZ>()
+                    : get_sfg_class<Type::GeometryCollection, Dimensions::XY>();
+        sfgs = Rcpp::List::create(sfgs);
       }
     }
   }
